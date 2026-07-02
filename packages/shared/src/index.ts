@@ -1,33 +1,33 @@
-export { computeRating } from './got/rating.js'
+export { computeRating } from './got/rating';
 export {
-  authMeSchema,
-  telegramAuthSchema,
-  userSchema,
   type AuthMe,
+  authMeSchema,
   type TelegramAuthInput,
+  telegramAuthSchema,
   type User,
-} from './schemas/auth.js'
+  userSchema,
+} from './schemas/auth';
 export {
-  createGotGameSchema,
-  gotGameSchema,
-  gotGameTypeSchema,
-  gotHouseSchema,
-  gotHouseStatsSchema,
-  gotPlayerStatsSchema,
-  gotResultInputSchema,
-  gotResultSchema,
   type CreateGotGameInput,
+  createGotGameSchema,
   type GotGame,
+  gotGameSchema,
   type GotGameType,
+  gotGameTypeSchema,
   type GotHouse,
+  gotHouseSchema,
   type GotHouseStats,
+  gotHouseStatsSchema,
   type GotPlayerStats,
+  gotPlayerStatsSchema,
   type GotResult,
   type GotResultInput,
-} from './schemas/got.js'
+  gotResultInputSchema,
+  gotResultSchema,
+} from './schemas/got';
 export {
-  createPlayerSchema,
-  playerSchema,
   type CreatePlayerInput,
+  createPlayerSchema,
   type Player,
-} from './schemas/players.js'
+  playerSchema,
+} from './schemas/players';

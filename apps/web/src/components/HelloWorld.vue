@@ -1,5 +1,8 @@
 <template>
-  <v-container class="fill-height d-flex flex-column justify-center" max-width="1100">
+  <v-container
+    class="fill-height d-flex flex-column justify-center"
+    max-width="1100"
+  >
     <div>
       <div class="mb-8 text-center">
         <div class="text-body-medium font-weight-light mb-n1">Welcome to</div>
@@ -15,11 +18,20 @@
             variant="tonal"
           >
             <template #prepend>
-              <v-avatar class="ml-2 mr-4" icon="mdi-rocket-launch-outline" size="60" variant="tonal" />
+              <v-avatar
+                class="ml-2 mr-4"
+                icon="mdi-rocket-launch-outline"
+                size="60"
+                variant="tonal"
+              />
             </template>
 
             <template #title>
-              <div class="my-title my-uppercase text-headline-medium font-weight-bold">Scaffold ready</div>
+              <div
+                class="my-title my-uppercase text-headline-medium font-weight-bold"
+              >
+                Scaffold ready
+              </div>
             </template>
 
             <template #subtitle>
@@ -34,5 +46,4 @@
   </v-container>
 </template>
 
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>

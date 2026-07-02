@@ -1,6 +1,13 @@
-import { relations } from 'drizzle-orm'
+import { relations } from 'drizzle-orm';
 
-import { gotGameTypeHouses, gotGameTypes, gotGames, gotHouses, gotResults, players, userIdentities, users } from './index.js'
+import { players, userIdentities, users } from '@/db/schema/core';
+import {
+  gotGames,
+  gotGameTypeHouses,
+  gotGameTypes,
+  gotHouses,
+  gotResults,
+} from '@/db/schema/got';
 
 export const usersRelations = relations(users, ({ many, one }) => ({
   identities: many(userIdentities),
@@ -8,14 +15,14 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     fields: [users.id],
     references: [players.userId],
   }),
-}))
+}));
 
 export const userIdentitiesRelations = relations(userIdentities, ({ one }) => ({
   user: one(users, {
     fields: [userIdentities.userId],
     references: [users.id],
   }),
-}))
+}));
 
 export const playersRelations = relations(players, ({ one, many }) => ({
   user: one(users, {
@@ -27,28 +34,31 @@ export const playersRelations = relations(players, ({ one, many }) => ({
     references: [users.id],
   }),
   results: many(gotResults),
-}))
+}));
 
 export const gotHousesRelations = relations(gotHouses, ({ many }) => ({
   gameTypeLinks: many(gotGameTypeHouses),
   results: many(gotResults),
-}))
+}));
 
 export const gotGameTypesRelations = relations(gotGameTypes, ({ many }) => ({
   houses: many(gotGameTypeHouses),
   games: many(gotGames),
-}))
+}));
 
-export const gotGameTypeHousesRelations = relations(gotGameTypeHouses, ({ one }) => ({
-  gameType: one(gotGameTypes, {
-    fields: [gotGameTypeHouses.gameTypeId],
-    references: [gotGameTypes.id],
+export const gotGameTypeHousesRelations = relations(
+  gotGameTypeHouses,
+  ({ one }) => ({
+    gameType: one(gotGameTypes, {
+      fields: [gotGameTypeHouses.gameTypeId],
+      references: [gotGameTypes.id],
+    }),
+    house: one(gotHouses, {
+      fields: [gotGameTypeHouses.houseId],
+      references: [gotHouses.id],
+    }),
   }),
-  house: one(gotHouses, {
-    fields: [gotGameTypeHouses.houseId],
-    references: [gotHouses.id],
-  }),
-}))
+);
 
 export const gotGamesRelations = relations(gotGames, ({ one, many }) => ({
   gameType: one(gotGameTypes, {
@@ -60,7 +70,7 @@ export const gotGamesRelations = relations(gotGames, ({ one, many }) => ({
     references: [users.id],
   }),
   results: many(gotResults),
-}))
+}));
 
 export const gotResultsRelations = relations(gotResults, ({ one }) => ({
   game: one(gotGames, {
@@ -75,4 +85,4 @@ export const gotResultsRelations = relations(gotResults, ({ one }) => ({
     fields: [gotResults.playerId],
     references: [players.id],
   }),
-}))
+}));

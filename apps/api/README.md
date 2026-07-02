@@ -6,11 +6,13 @@ Hono + Drizzle + PostgreSQL.
 
 ```bash
 cp .env.example .env          # из корня репо
-npm run db:up                 # из корня: Postgres на :5433
+npm run db:up                 # Postgres, порт = POSTGRES_HOST_PORT
 npm run db:setup              # миграции + сиды
 npm run dev:api               # :3001
 ```
 
-Переменные: `DATABASE_URL`, `SESSION_SECRET`, `TELEGRAM_BOT_TOKEN` (для `POST /api/auth/telegram`).
+`.env` в корне репо подхватывается API, migrate и seed автоматически.
+
+Переменные: `POSTGRES_HOST_PORT`, `DATABASE_URL`, `SESSION_SECRET`, `TELEGRAM_BOT_TOKEN`.
 
 Повторный импорт партий из v0: `SEED_FORCE=true npm run db:seed`.

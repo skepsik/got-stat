@@ -1,3 +1,3 @@
-export * from './core.js'
-export * from './got.js'
-export * from './relations.js'
+export * from '@/db/schema/core';
+export * from '@/db/schema/got';
+export * from '@/db/schema/relations';

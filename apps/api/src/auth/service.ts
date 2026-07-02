@@ -1,46 +1,51 @@
-import { and, eq } from 'drizzle-orm'
-import type { Context, MiddlewareHandler } from 'hono'
-import { getCookie, setCookie } from 'hono/cookie'
-import { HTTPException } from 'hono/http-exception'
-
-import type { AppConfig } from '../config.js'
-import type { Db } from '../db/client.js'
-import { players, userIdentities, users } from '../db/schema/index.js'
-import type { AuthProviderRegistry } from './registry.js'
-import { createSessionToken, getSessionCookieName, parseSessionToken } from './session.js'
-import type { AuthUser } from './types.js'
+import type { AuthProviderRegistry } from '@/auth/registry';
+import type { AuthUser } from '@/auth/types';
+import type { Db } from '@/db/client';
+import type { Env } from '@/env';
+import type { Context, MiddlewareHandler } from 'hono';
+import { and, eq } from 'drizzle-orm';
+import { getCookie, setCookie } from 'hono/cookie';
+import { HTTPException } from 'hono/http-exception';
+import {
+  createSessionToken,
+  getSessionCookieName,
+  parseSessionToken,
+} from '@/auth/session';
+import { players, userIdentities, users } from '@/db/schema/index';
 
 type AuthEnv = {
   Variables: {
-    userId: string
-  }
-}
+    userId: string;
+  };
+};
 
-export function createAuthMiddleware(config: AppConfig): MiddlewareHandler<AuthEnv> {
+export function createAuthMiddleware(config: Env): MiddlewareHandler<AuthEnv> {
   return async (c, next) => {
-    const token = getCookie(c, getSessionCookieName())
-    const userId = parseSessionToken(token, config.SESSION_SECRET)
+    const token = getCookie(c, getSessionCookieName());
+    const userId = parseSessionToken(token, config.SESSION_SECRET);
 
     if (!userId) {
-      throw new HTTPException(401, { message: 'Unauthorized' })
+      throw new HTTPException(401, { message: 'Unauthorized' });
     }
 
-    c.set('userId', userId)
-    await next()
-  }
+    c.set('userId', userId);
+    await next();
+  };
 }
 
-export function optionalAuthMiddleware(config: AppConfig): MiddlewareHandler<AuthEnv> {
+export function optionalAuthMiddleware(
+  config: Env,
+): MiddlewareHandler<AuthEnv> {
   return async (c, next) => {
-    const token = getCookie(c, getSessionCookieName())
-    const userId = parseSessionToken(token, config.SESSION_SECRET)
+    const token = getCookie(c, getSessionCookieName());
+    const userId = parseSessionToken(token, config.SESSION_SECRET);
 
     if (userId) {
-      c.set('userId', userId)
+      c.set('userId', userId);
     }
 
-    await next()
-  }
+    await next();
+  };
 }
 
 export async function loginWithProvider(
@@ -49,36 +54,43 @@ export async function loginWithProvider(
   input: unknown,
   registry: AuthProviderRegistry,
 ): Promise<{ userId: string } | null> {
-  const provider = registry.get(providerId)
+  const provider = registry.get(providerId);
   if (!provider) {
-    return null
+    return null;
   }
 
-  const authUser = await provider.authenticate(input)
+  const authUser = await provider.authenticate(input);
   if (!authUser) {
-    return null
+    return null;
   }
 
-  const userId = await upsertAuthUser(db, providerId, authUser)
-  return { userId }
+  const userId = await upsertAuthUser(db, providerId, authUser);
+  return { userId };
 }
 
-async function upsertAuthUser(db: Db, providerId: string, authUser: AuthUser): Promise<string> {
+async function upsertAuthUser(
+  db: Db,
+  providerId: string,
+  authUser: AuthUser,
+): Promise<string> {
   const existingIdentity = await db.query.userIdentities.findFirst({
     where: and(
       eq(userIdentities.provider, providerId),
       eq(userIdentities.providerUid, authUser.providerUid),
     ),
-  })
+  });
 
   if (existingIdentity) {
-    await linkPlayerByTelegram(db, existingIdentity.userId, authUser.username)
-    return existingIdentity.userId
+    await linkPlayerByTelegram(db, existingIdentity.userId, authUser.username);
+    return existingIdentity.userId;
   }
 
-  const [createdUser] = await db.insert(users).values({
-    displayName: authUser.displayName,
-  }).returning()
+  const [createdUser] = await db
+    .insert(users)
+    .values({
+      displayName: authUser.displayName,
+    })
+    .returning();
 
   await db.insert(userIdentities).values({
     userId: createdUser.id,
@@ -86,38 +98,44 @@ async function upsertAuthUser(db: Db, providerId: string, authUser: AuthUser): P
     providerUid: authUser.providerUid,
     username: authUser.username ?? null,
     rawData: authUser.raw,
-  })
+  });
 
-  await linkPlayerByTelegram(db, createdUser.id, authUser.username)
-  return createdUser.id
+  await linkPlayerByTelegram(db, createdUser.id, authUser.username);
+  return createdUser.id;
 }
 
-async function linkPlayerByTelegram(db: Db, userId: string, username?: string): Promise<void> {
+async function linkPlayerByTelegram(
+  db: Db,
+  userId: string,
+  username?: string,
+): Promise<void> {
   if (!username) {
-    return
+    return;
   }
 
-  const normalized = username.replace(/^@/, '').toLowerCase()
+  const normalized = username.replace(/^@/, '').toLowerCase();
   const candidate = await db.query.players.findFirst({
     where: eq(players.telegram, normalized),
-  })
+  });
 
   if (!candidate || candidate.userId) {
-    return
+    return;
   }
 
-  await db.update(players)
-    .set({ userId })
-    .where(eq(players.id, candidate.id))
+  await db.update(players).set({ userId }).where(eq(players.id, candidate.id));
 }
 
-export function setSessionCookie(c: Context, userId: string, secret: string): void {
+export function setSessionCookie(
+  c: Context,
+  userId: string,
+  secret: string,
+): void {
   setCookie(c, getSessionCookieName(), createSessionToken(userId, secret), {
     httpOnly: true,
     sameSite: 'Lax',
     path: '/',
     maxAge: 30 * 24 * 60 * 60,
-  })
+  });
 }
 
 export function clearSessionCookie(c: Context): void {
@@ -126,21 +144,21 @@ export function clearSessionCookie(c: Context): void {
     sameSite: 'Lax',
     path: '/',
     maxAge: 0,
-  })
+  });
 }
 
 export async function getAuthMe(db: Db, userId: string) {
   const user = await db.query.users.findFirst({
     where: eq(users.id, userId),
-  })
+  });
 
   if (!user) {
-    return null
+    return null;
   }
 
   const player = await db.query.players.findFirst({
     where: eq(players.userId, userId),
-  })
+  });
 
   return {
     user: {
@@ -157,7 +175,7 @@ export async function getAuthMe(db: Db, userId: string) {
           createdAt: player.createdAt.toISOString(),
         }
       : null,
-  }
+  };
 }
 
-export type { AuthEnv }
+export type { AuthEnv };

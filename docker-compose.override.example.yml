@@ -1,0 +1,6 @@
+# Опционально: скопируй в docker-compose.override.yml (файл в .gitignore).
+# Порт Postgres задаётся через POSTGRES_HOST_PORT в .env — для порта override не нужен.
+#
+# services:
+#   db:
+#     ...
