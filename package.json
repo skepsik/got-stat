@@ -14,7 +14,12 @@
     "build:web": "npm run build -w @got-stat/web",
     "build:api": "npm run build -w @got-stat/api",
     "lint": "npm run lint -w @got-stat/web",
-    "type-check": "npm run type-check -w @got-stat/web"
+    "type-check": "npm run type-check -w @got-stat/web && npm run build -w @got-stat/api",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate -w @got-stat/api",
+    "db:seed": "npm run db:seed -w @got-stat/api",
+    "db:setup": "npm run db:migrate && npm run db:seed"
   },
   "engines": {
     "node": ">=22"
