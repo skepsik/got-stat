@@ -1,4 +1,5 @@
 import type { Db } from '@/db/client';
+import type { Locale } from '@/i18n/index';
 
 import { computeRating, type CreateGotGameInput } from '@got-stat/shared';
 import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
@@ -10,6 +11,7 @@ import {
   gotResults,
   players,
 } from '@/db/schema/index';
+import { tGameTypeLabel, tHouseName } from '@/i18n/index';
 
 function toGameResponse(
   game: typeof gotGames.$inferSelect,
@@ -33,21 +35,21 @@ function toGameResponse(
   };
 }
 
-export async function listGotHouses(db: Db) {
+export async function listGotHouses(db: Db, locale: Locale) {
   const rows = await db.query.gotHouses.findMany({
     orderBy: [asc(gotHouses.sortOrder)],
   });
 
   return rows.map((house) => ({
     id: house.id,
-    name: house.name,
+    name: tHouseName(locale, house.id),
     sortOrder: house.sortOrder,
   }));
 }
 
-export async function listGotGameTypes(db: Db) {
+export async function listGotGameTypes(db: Db, locale: Locale) {
   const types = await db.query.gotGameTypes.findMany({
-    orderBy: [asc(gotGameTypes.label)],
+    orderBy: [asc(gotGameTypes.sortOrder)],
   });
 
   const links = await db.query.gotGameTypeHouses.findMany();
@@ -61,7 +63,7 @@ export async function listGotGameTypes(db: Db) {
 
   return types.map((type) => ({
     id: type.id,
-    label: type.label,
+    label: tGameTypeLabel(locale, type.id),
     vassals: type.vassals,
     houseIds: housesByType.get(type.id) ?? [],
   }));
@@ -254,29 +256,33 @@ export async function getGotPlayerStats(db: Db, playerId: string) {
   };
 }
 
-export async function getGotHouseStats(db: Db) {
+export async function getGotHouseStats(db: Db, locale: Locale) {
   const rows = await db
     .select({
       houseId: gotHouses.id,
-      name: gotHouses.name,
+      sortOrder: gotHouses.sortOrder,
       totalGames: sql<number>`count(${gotResults.id})::int`,
       totalScores: sql<number>`coalesce(sum(${gotResults.score}), 0)::int`,
     })
     .from(gotHouses)
     .leftJoin(gotResults, eq(gotResults.houseId, gotHouses.id))
-    .groupBy(gotHouses.id, gotHouses.name)
+    .groupBy(gotHouses.id, gotHouses.sortOrder)
     .orderBy(asc(gotHouses.sortOrder));
 
   return rows.map((row) => ({
     houseId: row.houseId,
-    name: row.name,
+    name: tHouseName(locale, row.houseId),
     totalGames: row.totalGames,
     totalScores: row.totalScores,
     averageScore: row.totalGames > 0 ? row.totalScores / row.totalGames : 0,
   }));
 }
 
-export async function getGotHouseStatsById(db: Db, houseId: string) {
-  const all = await getGotHouseStats(db);
+export async function getGotHouseStatsById(
+  db: Db,
+  houseId: string,
+  locale: Locale,
+) {
+  const all = await getGotHouseStats(db, locale);
   return all.find((item) => item.houseId === houseId) ?? null;
 }

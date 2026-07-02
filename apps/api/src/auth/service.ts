@@ -1,3 +1,4 @@
+import type { AppEnv } from '@/app-env';
 import type { AuthProviderRegistry } from '@/auth/registry';
 import type { AuthUser } from '@/auth/types';
 import type { Db } from '@/db/client';
@@ -13,13 +14,7 @@ import {
 } from '@/auth/session';
 import { players, userIdentities, users } from '@/db/schema/index';
 
-type AuthEnv = {
-  Variables: {
-    userId: string;
-  };
-};
-
-export function createAuthMiddleware(config: Env): MiddlewareHandler<AuthEnv> {
+export function createAuthMiddleware(config: Env): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
     const token = getCookie(c, getSessionCookieName());
     const userId = parseSessionToken(token, config.SESSION_SECRET);
@@ -35,7 +30,7 @@ export function createAuthMiddleware(config: Env): MiddlewareHandler<AuthEnv> {
 
 export function optionalAuthMiddleware(
   config: Env,
-): MiddlewareHandler<AuthEnv> {
+): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
     const token = getCookie(c, getSessionCookieName());
     const userId = parseSessionToken(token, config.SESSION_SECRET);
@@ -178,4 +173,4 @@ export async function getAuthMe(db: Db, userId: string) {
   };
 }
 
-export type { AuthEnv };
+export type { AppEnv as AuthEnv };

@@ -1,4 +1,4 @@
-import type { AuthEnv } from '@/auth/service';
+import type { AppEnv } from '@/app-env';
 import type { Db } from '@/db/client';
 import type { MiddlewareHandler } from 'hono';
 
@@ -20,12 +20,16 @@ import {
 
 export function createGotRoutes(
   db: Db,
-  requireAuth: MiddlewareHandler<AuthEnv>,
+  requireAuth: MiddlewareHandler<AppEnv>,
 ) {
-  const app = new Hono<AuthEnv>();
+  const app = new Hono<AppEnv>();
 
-  app.get('/houses', async (c) => c.json(await listGotHouses(db)));
-  app.get('/game-types', async (c) => c.json(await listGotGameTypes(db)));
+  app.get('/houses', async (c) =>
+    c.json(await listGotHouses(db, c.get('locale'))),
+  );
+  app.get('/game-types', async (c) =>
+    c.json(await listGotGameTypes(db, c.get('locale'))),
+  );
   app.get('/games', async (c) => c.json(await listGotGames(db)));
 
   app.get('/games/:id', async (c) => {
@@ -64,10 +68,16 @@ export function createGotRoutes(
   app.get('/stats/leaderboard', async (c) =>
     c.json(await getGotLeaderboard(db)),
   );
-  app.get('/stats/houses', async (c) => c.json(await getGotHouseStats(db)));
+  app.get('/stats/houses', async (c) =>
+    c.json(await getGotHouseStats(db, c.get('locale'))),
+  );
 
   app.get('/stats/houses/:houseId', async (c) => {
-    const stats = await getGotHouseStatsById(db, c.req.param('houseId'));
+    const stats = await getGotHouseStatsById(
+      db,
+      c.req.param('houseId'),
+      c.get('locale'),
+    );
     if (!stats) {
       throw new HTTPException(404, { message: 'House not found' });
     }

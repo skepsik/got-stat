@@ -19,11 +19,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "npm run type-check -w @got-stat/web && npm run type-check -w @got-stat/api && npm run type-check -w @got-stat/shared",
-    "db:up": "docker compose up -d db",
+    "db:up": "docker compose up -d db --wait",
     "db:down": "docker compose down",
     "db:migrate": "npm run db:migrate -w @got-stat/api",
     "db:seed": "npm run db:seed -w @got-stat/api",
-    "db:setup": "npm run db:migrate && npm run db:seed"
+    "db:import": "npm run db:import -w @got-stat/api",
+    "db:setup": "npm run db:up && npm run db:migrate && npm run db:seed && npm run db:import"
   },
   "engines": {
     "node": ">=22"

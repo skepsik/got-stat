@@ -1,7 +1,7 @@
 export const gameTypes = [
   {
     id: 'classic',
-    label: 'Классика',
+    order: 1,
     houses_ids: [
       'barateon',
       'lannister',
@@ -13,7 +13,7 @@ export const gameTypes = [
   },
   {
     id: 'mother_of_dragons_a',
-    label: 'Мать драконов. Колода A',
+    order: 2,
     houses_ids: [
       'barateon',
       'lannister',
@@ -28,7 +28,7 @@ export const gameTypes = [
   },
   {
     id: 'mother_of_dragons_b',
-    label: 'Мать драконов. Колода B',
+    order: 3,
     houses_ids: [
       'barateon',
       'lannister',
@@ -43,7 +43,7 @@ export const gameTypes = [
   },
   {
     id: 'dance_with_dragons',
-    label: 'Танец драконов',
+    order: 4,
     houses_ids: [
       'barateon',
       'lannister',
@@ -55,7 +55,7 @@ export const gameTypes = [
   },
   {
     id: 'feast_of_crows',
-    label: 'Пир воронов',
+    order: 5,
     houses_ids: ['barateon', 'lannister', 'stark', 'arren'],
   },
-];
+]

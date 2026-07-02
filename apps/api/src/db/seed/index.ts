@@ -13,7 +13,6 @@ async function seedReferenceData() {
     .values(
       houses.map((house) => ({
         id: house.id,
-        name: house.name,
         sortOrder: house.order,
       })),
     )
@@ -24,7 +23,7 @@ async function seedReferenceData() {
     .values(
       gameTypes.map((type) => ({
         id: type.id,
-        label: type.label,
+        sortOrder: type.order,
         vassals: type.vassals ?? false,
       })),
     )

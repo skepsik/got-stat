@@ -1,4 +1,4 @@
-import type { AuthEnv } from '@/auth/service';
+import type { AppEnv } from '@/app-env';
 import type { Db } from '@/db/client';
 import type { MiddlewareHandler } from 'hono';
 
@@ -13,9 +13,9 @@ import {
 
 export function createPlayersRoutes(
   db: Db,
-  requireAuth: MiddlewareHandler<AuthEnv>,
+  requireAuth: MiddlewareHandler<AppEnv>,
 ) {
-  const app = new Hono<AuthEnv>();
+  const app = new Hono<AppEnv>();
 
   app.get('/', async (c) => c.json(await listPlayers(db)));
 

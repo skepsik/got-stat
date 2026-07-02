@@ -2,11 +2,9 @@ CREATE TABLE "players" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"display_name" text NOT NULL,
 	"telegram" text,
-	"legacy_id" text,
 	"user_id" uuid,
 	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "players_legacy_id_unique" UNIQUE("legacy_id"),
 	CONSTRAINT "players_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
@@ -36,7 +34,7 @@ CREATE TABLE "got_game_type_houses" (
 --> statement-breakpoint
 CREATE TABLE "got_game_types" (
 	"id" text PRIMARY KEY NOT NULL,
-	"label" text NOT NULL,
+	"sort_order" integer NOT NULL,
 	"vassals" boolean DEFAULT false NOT NULL
 );
 --> statement-breakpoint
@@ -50,7 +48,6 @@ CREATE TABLE "got_games" (
 --> statement-breakpoint
 CREATE TABLE "got_houses" (
 	"id" text PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
 	"sort_order" integer NOT NULL
 );
 --> statement-breakpoint

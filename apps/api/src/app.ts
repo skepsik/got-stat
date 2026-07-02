@@ -1,3 +1,4 @@
+import type { AppEnv } from '@/app-env';
 import type { AuthProviderRegistry } from '@/auth/registry';
 import type { Db } from '@/db/client';
 import type { Env } from '@/env';
@@ -10,6 +11,7 @@ import {
   loginWithProvider,
   setSessionCookie,
 } from '@/auth/service';
+import { localeMiddleware } from '@/i18n/middleware';
 import { createGotRoutes } from '@/modules/got/got.routes';
 import { createPlayersRoutes } from '@/modules/players/players.routes';
 
@@ -18,8 +20,10 @@ export function createApp(
   config: Env,
   authRegistry: AuthProviderRegistry,
 ) {
-  const app = new Hono();
+  const app = new Hono<AppEnv>();
   const requireAuth = createAuthMiddleware(config);
+
+  app.use('*', localeMiddleware());
 
   app.get('/api/health', (c) => c.json({ ok: true }));
 

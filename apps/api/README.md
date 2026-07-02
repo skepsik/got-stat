@@ -17,6 +17,8 @@ npm run dev:api               # :3001
 
 ## Сиды
 
-`npm run db:seed` — справочники GoT (дома, типы игр). Запускается через `db:setup`.
+`npm run db:seed` — справочники GoT (дома, типы игр).
 
-Начальные данные (игроки, партии) на прод — через дамп при первом деплое.
+`npm run db:import` — игроки и партии из `got-stat-initial` (`V0_DATA_DIR` в `.env`). Повторный импорт: `IMPORT_FORCE=true`.
+
+`npm run db:setup` — up + migrate + seed + import.

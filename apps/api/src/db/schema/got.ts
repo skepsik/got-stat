@@ -14,13 +14,12 @@ import { players, users } from '@/db/schema/core';
 
 export const gotHouses = pgTable('got_houses', {
   id: text('id').primaryKey(),
-  name: text('name').notNull(),
   sortOrder: integer('sort_order').notNull(),
 });
 
 export const gotGameTypes = pgTable('got_game_types', {
   id: text('id').primaryKey(),
-  label: text('label').notNull(),
+  sortOrder: integer('sort_order').notNull(),
   vassals: boolean('vassals').notNull().default(false),
 });
 

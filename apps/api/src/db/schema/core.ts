@@ -44,7 +44,6 @@ export const players = pgTable('players', {
   id: uuid('id').primaryKey().defaultRandom(),
   displayName: text('display_name').notNull(),
   telegram: text('telegram'),
-  legacyId: text('legacy_id').unique(),
   userId: uuid('user_id')
     .unique()
     .references(() => users.id, { onDelete: 'set null' }),
