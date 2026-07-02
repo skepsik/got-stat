@@ -1,0 +1,15 @@
+{
+  "name": "@got-stat/api",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "node --watch src/index.ts",
+    "start": "node src/index.ts",
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.5",
+    "typescript": "~5.9.3"
+  }
+}

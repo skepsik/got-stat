@@ -1,0 +1,22 @@
+{
+  "name": "got-stat-v1",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @got-stat/web",
+    "dev:web": "npm run dev -w @got-stat/web",
+    "dev:api": "npm run dev -w @got-stat/api",
+    "build": "npm run build -w @got-stat/web",
+    "build:web": "npm run build -w @got-stat/web",
+    "build:api": "npm run build -w @got-stat/api",
+    "lint": "npm run lint -w @got-stat/web",
+    "type-check": "npm run type-check -w @got-stat/web"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
