@@ -28,11 +28,6 @@ const envSchema = z.object({
     .default('postgres://gotstat:gotstat@localhost:5434/gotstat'),
   SESSION_SECRET: z.string().min(16).default('dev-session-secret-change-me'),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
-  SEED_FORCE: z
-    .enum(['true', 'false'])
-    .optional()
-    .default('false')
-    .transform((value) => value === 'true'),
 });
 
 function readProcessEnv() {
@@ -42,7 +37,6 @@ function readProcessEnv() {
     DATABASE_URL: process.env.DATABASE_URL,
     SESSION_SECRET: process.env.SESSION_SECRET,
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
-    SEED_FORCE: process.env.SEED_FORCE,
   };
 }
 
