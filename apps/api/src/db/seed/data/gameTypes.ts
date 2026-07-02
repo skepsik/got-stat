@@ -42,7 +42,7 @@ export const gameTypes = [
     vassals: true,
   },
   {
-    id: 'dance_of_dragons',
+    id: 'dance_with_dragons',
     label: 'Танец драконов',
     houses_ids: [
       'barateon',
@@ -54,7 +54,7 @@ export const gameTypes = [
     ],
   },
   {
-    id: 'pir',
+    id: 'feast_of_crows',
     label: 'Пир воронов',
     houses_ids: ['barateon', 'lannister', 'stark', 'arren'],
   },
