@@ -1,5 +1,10 @@
 export { computeRating } from './got/rating';
 export {
+  compareResultsByPlacement,
+  type GotResultPlacement,
+  sortResultsByPlacement,
+} from './got/ranking';
+export {
   type AuthMe,
   authMeSchema,
   type TelegramAuthInput,

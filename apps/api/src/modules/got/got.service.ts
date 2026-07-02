@@ -1,7 +1,11 @@
 import type { Db } from '@/db/client';
 import type { Locale } from '@/i18n/index';
 
-import { computeRating, type CreateGotGameInput } from '@got-stat/shared';
+import {
+  computeRating,
+  type CreateGotGameInput,
+  sortResultsByPlacement,
+} from '@got-stat/shared';
 import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import {
   gotGames,
@@ -23,15 +27,17 @@ function toGameResponse(
     gameTypeId: game.gameTypeId,
     recordedBy: game.recordedBy,
     createdAt: game.createdAt.toISOString(),
-    results: results.map((result) => ({
-      id: result.id,
-      houseId: result.houseId,
-      playerId: result.playerId,
-      score: result.score,
-      landings: result.landings,
-      supply: result.supply,
-      throne: result.throne,
-    })),
+    results: sortResultsByPlacement(
+      results.map((result) => ({
+        id: result.id,
+        houseId: result.houseId,
+        playerId: result.playerId,
+        score: result.score,
+        landings: result.landings,
+        supply: result.supply,
+        throne: result.throne,
+      })),
+    ),
   };
 }
 

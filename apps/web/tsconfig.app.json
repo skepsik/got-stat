@@ -4,11 +4,11 @@
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
     "composite": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@got-stat/shared": ["../../packages/shared/src/index.ts"]
+      "@/*": ["./src/*"]
     },
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true

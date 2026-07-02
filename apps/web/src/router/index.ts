@@ -1,13 +1,38 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import Index from '@/pages/index.vue';
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      component: Index,
+      redirect: { name: 'games' },
+    },
+    {
+      path: '/games',
+      name: 'games',
+      component: () => import('@/pages/GamesPage.vue'),
+      children: [
+        {
+          path: ':id',
+          name: 'game',
+          component: () => import('@/pages/GameIdPage.vue'),
+        },
+      ],
+    },
+    {
+      path: '/players',
+      name: 'players',
+      component: () => import('@/pages/PlayersPage.vue'),
+    },
+    {
+      path: '/houses',
+      name: 'houses',
+      component: () => import('@/pages/HousesPage.vue'),
+    },
+    {
+      path: '/randomizer',
+      name: 'randomizer',
+      component: () => import('@/pages/RandomizerPage.vue'),
     },
   ],
 });
