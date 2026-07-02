@@ -9,6 +9,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@got-stat/shared": ["../../packages/shared/src/index.ts"]
-    }
+    },
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true
   }
 }
