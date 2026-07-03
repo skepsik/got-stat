@@ -7,9 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "type-check": "tsc --noEmit -p tsconfig.json",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "zod": "^3.25.76"

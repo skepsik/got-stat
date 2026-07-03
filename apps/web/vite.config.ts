@@ -1,11 +1,11 @@
-import { fileURLToPath, URL } from 'node:url';
-
 import Vue from '@vitejs/plugin-vue';
+import { fileURLToPath, URL } from 'node:url';
 import Fonts from 'unplugin-fonts/vite';
 import { defineConfig } from 'vite';
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify';
 
 export default defineConfig({
+  define: { 'process.env': {} },
   plugins: [
     Vue({
       template: { transformAssetUrls },
@@ -21,14 +21,13 @@ export default defineConfig({
         families: [
           {
             name: 'Roboto',
-            weights: [100, 300, 400, 500, 700, 900],
             styles: ['normal', 'italic'],
+            weights: [100, 300, 400, 500, 700, 900],
           },
         ],
       },
     }),
   ],
-  define: { 'process.env': {} },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('src', import.meta.url)),
@@ -39,8 +38,8 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
         changeOrigin: true,
+        target: 'http://localhost:3001',
       },
     },
   },
