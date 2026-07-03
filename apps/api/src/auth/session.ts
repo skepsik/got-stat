@@ -4,42 +4,28 @@ const SESSION_COOKIE = 'got_stat_session';
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface SessionPayload {
-  userId: string;
   exp: number;
-}
-
-function sign(value: string, secret: string): string {
-  return createHmac('sha256', secret).update(value).digest('base64url');
-}
-
-function encodePayload(payload: SessionPayload): string {
-  return Buffer.from(JSON.stringify(payload)).toString('base64url');
-}
-
-function decodePayload(value: string): SessionPayload | null {
-  try {
-    return JSON.parse(
-      Buffer.from(value, 'base64url').toString('utf8'),
-    ) as SessionPayload;
-  } catch {
-    return null;
-  }
+  userId: string;
 }
 
 export function createSessionToken(userId: string, secret: string): string {
   const payload = encodePayload({
-    userId,
     exp: Date.now() + SESSION_TTL_MS,
+    userId,
   });
   const signature = sign(payload, secret);
 
   return `${payload}.${signature}`;
 }
 
+export function getSessionCookieName(): string {
+  return SESSION_COOKIE;
+}
+
 export function parseSessionToken(
   token: string | undefined,
   secret: string,
-): string | null {
+): null | string {
   if (!token) {
     return null;
   }
@@ -68,8 +54,22 @@ export function parseSessionToken(
   return decoded.userId;
 }
 
-export function getSessionCookieName(): string {
-  return SESSION_COOKIE;
+function decodePayload(value: string): null | SessionPayload {
+  try {
+    return JSON.parse(
+      Buffer.from(value, 'base64url').toString('utf8'),
+    ) as SessionPayload;
+  } catch {
+    return null;
+  }
+}
+
+function encodePayload(payload: SessionPayload): string {
+  return Buffer.from(JSON.stringify(payload)).toString('base64url');
+}
+
+function sign(value: string, secret: string): string {
+  return createHmac('sha256', secret).update(value).digest('base64url');
 }
 
 export { SESSION_COOKIE };

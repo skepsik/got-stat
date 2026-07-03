@@ -6,11 +6,11 @@ export const createPlayerSchema = z.object({
 });
 
 export const playerSchema = z.object({
-  id: z.string().uuid(),
+  createdAt: z.string().datetime(),
   displayName: z.string(),
+  id: z.string().uuid(),
   telegram: z.string().nullable(),
   userId: z.string().uuid().nullable(),
-  createdAt: z.string().datetime(),
 });
 
 export type CreatePlayerInput = z.infer<typeof createPlayerSchema>;

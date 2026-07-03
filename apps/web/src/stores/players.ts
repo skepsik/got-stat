@@ -1,4 +1,9 @@
-import type { GotPlayerStats, LeaderboardRatingMode, Player } from '@got-stat/shared';
+import type {
+  GotPlayerStats,
+  LeaderboardRatingMode,
+  Player,
+} from '@got-stat/shared';
+
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -75,7 +80,7 @@ export const usePlayersStore = defineStore('players', () => {
     }
   }
 
-  function labelFor(playerId: string | null) {
+  function labelFor(playerId: null | string) {
     if (!playerId) {
       return 'Вассал';
     }

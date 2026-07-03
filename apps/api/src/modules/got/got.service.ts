@@ -1,6 +1,3 @@
-import type { Db } from '@/db/client';
-import type { Locale } from '@/i18n/index';
-
 import {
   computeEloRatings,
   computeRating,
@@ -11,6 +8,10 @@ import {
   sortResultsByPlacement,
 } from '@got-stat/shared';
 import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
+
+import type { Db } from '@/db/client';
+import type { Locale } from '@/i18n/index';
+
 import {
   gotGames,
   gotGameTypeHouses,
@@ -21,40 +22,181 @@ import {
 } from '@/db/schema/index';
 import { tGameTypeLabel, tHouseName } from '@/i18n/index';
 
-function toGameResponse(
-  game: typeof gotGames.$inferSelect,
-  results: Array<typeof gotResults.$inferSelect>,
+export async function createGotGame(
+  db: Db,
+  input: CreateGotGameInput,
+  recordedBy: string,
 ) {
-  return {
-    id: game.id,
-    playedAt: game.playedAt.toISOString(),
-    gameTypeId: game.gameTypeId,
-    recordedBy: game.recordedBy,
-    createdAt: game.createdAt.toISOString(),
-    results: sortResultsByPlacement(
-      results.map((result) => ({
-        id: result.id,
+  await validateGameInput(db, input);
+
+  const [game] = await db
+    .insert(gotGames)
+    .values({
+      gameTypeId: input.gameTypeId,
+      playedAt: new Date(input.playedAt),
+      recordedBy,
+    })
+    .returning();
+
+  const resultRows = await db
+    .insert(gotResults)
+    .values(
+      input.results.map((result) => ({
+        gameId: game.id,
         houseId: result.houseId,
-        playerId: result.playerId,
-        score: result.score,
         landings: result.landings,
+        playerId: result.playerId ?? null,
+        score: result.score,
         supply: result.supply,
         throne: result.throne,
       })),
+    )
+    .returning();
+
+  return toGameResponse(game, resultRows);
+}
+
+export async function deleteGotGame(db: Db, gameId: string) {
+  const deleted = await db
+    .delete(gotGames)
+    .where(eq(gotGames.id, gameId))
+    .returning();
+
+  return deleted.length > 0;
+}
+
+export async function getGotGame(db: Db, gameId: string) {
+  const game = await db.query.gotGames.findFirst({
+    where: eq(gotGames.id, gameId),
+    with: {
+      results: true,
+    },
+  });
+
+  return game ? toGameResponse(game, game.results) : null;
+}
+
+export async function getGotHouseStats(db: Db, locale: Locale) {
+  const rows = await db
+    .select({
+      houseId: gotHouses.id,
+      sortOrder: gotHouses.sortOrder,
+      totalGames: sql<number>`count(${gotResults.id})::int`,
+      totalScores: sql<number>`coalesce(sum(${gotResults.score}), 0)::int`,
+    })
+    .from(gotHouses)
+    .leftJoin(gotResults, eq(gotResults.houseId, gotHouses.id))
+    .groupBy(gotHouses.id, gotHouses.sortOrder)
+    .orderBy(asc(gotHouses.sortOrder));
+
+  return rows.map((row) => ({
+    averageScore: row.totalGames > 0 ? row.totalScores / row.totalGames : 0,
+    houseId: row.houseId,
+    name: tHouseName(locale, row.houseId),
+    totalGames: row.totalGames,
+    totalScores: row.totalScores,
+  }));
+}
+
+export async function getGotHouseStatsById(
+  db: Db,
+  houseId: string,
+  locale: Locale,
+) {
+  const all = await getGotHouseStats(db, locale);
+  return all.find((item) => item.houseId === houseId) ?? null;
+}
+
+export async function getGotLeaderboard(
+  db: Db,
+  ratingMode: LeaderboardRatingMode = 'average',
+) {
+  const rows = await db
+    .select({
+      displayName: players.displayName,
+      playerId: players.id,
+      totalGames: sql<number>`count(${gotResults.id})::int`,
+      totalScores: sql<number>`coalesce(sum(${gotResults.score}), 0)::int`,
+    })
+    .from(players)
+    .innerJoin(gotResults, eq(gotResults.playerId, players.id))
+    .groupBy(players.id, players.displayName)
+    .orderBy(
+      desc(
+        sql`coalesce(sum(${gotResults.score}), 0)::float / nullif(count(${gotResults.id}), 0)`,
+      ),
+    );
+
+  const eloRatings =
+    ratingMode === 'elo' ? computeEloRatings(await listGamesForElo(db)) : null;
+
+  const leaderboard = rows.map((row) => ({
+    displayName: row.displayName,
+    playerId: row.playerId,
+    rating: resolveLeaderboardRating(ratingMode, row, eloRatings),
+    totalGames: row.totalGames,
+    totalScores: row.totalScores,
+  }));
+
+  if (ratingMode === 'elo') {
+    return leaderboard.sort((left, right) => right.rating - left.rating);
+  }
+
+  return leaderboard;
+}
+
+export async function getGotPlayerStats(
+  db: Db,
+  playerId: string,
+  ratingMode: LeaderboardRatingMode = 'average',
+) {
+  const player = await db.query.players.findFirst({
+    where: eq(players.id, playerId),
+  });
+
+  if (!player) {
+    return null;
+  }
+
+  const [stats] = await db
+    .select({
+      totalGames: sql<number>`count(${gotResults.id})::int`,
+      totalScores: sql<number>`coalesce(sum(${gotResults.score}), 0)::int`,
+    })
+    .from(gotResults)
+    .where(eq(gotResults.playerId, playerId));
+
+  const totalGames = stats?.totalGames ?? 0;
+  const totalScores = stats?.totalScores ?? 0;
+  const eloRatings =
+    ratingMode === 'elo' ? computeEloRatings(await listGamesForElo(db)) : null;
+
+  return {
+    displayName: player.displayName,
+    playerId: player.id,
+    rating: resolveLeaderboardRating(
+      ratingMode,
+      {
+        playerId: player.id,
+        totalGames,
+        totalScores,
+      },
+      eloRatings,
     ),
+    totalGames,
+    totalScores,
   };
 }
 
-export async function listGotHouses(db: Db, locale: Locale) {
-  const rows = await db.query.gotHouses.findMany({
-    orderBy: [asc(gotHouses.sortOrder)],
+export async function listGotGames(db: Db) {
+  const games = await db.query.gotGames.findMany({
+    orderBy: [desc(gotGames.playedAt)],
+    with: {
+      results: true,
+    },
   });
 
-  return rows.map((house) => ({
-    id: house.id,
-    name: tHouseName(locale, house.id),
-    sortOrder: house.sortOrder,
-  }));
+  return games.map((game) => toGameResponse(game, game.results));
 }
 
 export async function listGotGameTypes(db: Db, locale: Locale) {
@@ -72,33 +214,83 @@ export async function listGotGameTypes(db: Db, locale: Locale) {
   }
 
   return types.map((type) => ({
+    houseIds: housesByType.get(type.id) ?? [],
     id: type.id,
     label: tGameTypeLabel(locale, type.id),
     vassals: type.vassals,
-    houseIds: housesByType.get(type.id) ?? [],
   }));
 }
 
-export async function listGotGames(db: Db) {
-  const games = await db.query.gotGames.findMany({
-    orderBy: [desc(gotGames.playedAt)],
-    with: {
-      results: true,
-    },
+export async function listGotHouses(db: Db, locale: Locale) {
+  const rows = await db.query.gotHouses.findMany({
+    orderBy: [asc(gotHouses.sortOrder)],
   });
 
-  return games.map((game) => toGameResponse(game, game.results));
+  return rows.map((house) => ({
+    id: house.id,
+    name: tHouseName(locale, house.id),
+    sortOrder: house.sortOrder,
+  }));
 }
 
-export async function getGotGame(db: Db, gameId: string) {
-  const game = await db.query.gotGames.findFirst({
-    where: eq(gotGames.id, gameId),
+async function listGamesForElo(db: Db): Promise<EloGame[]> {
+  const games = await db.query.gotGames.findMany({
+    orderBy: [asc(gotGames.playedAt)],
     with: {
       results: true,
     },
   });
 
-  return game ? toGameResponse(game, game.results) : null;
+  return games.map((game) => ({
+    playedAt: game.playedAt.toISOString(),
+    results: game.results.map((result) => ({
+      landings: result.landings,
+      playerId: result.playerId,
+      score: result.score,
+      supply: result.supply,
+      throne: result.throne,
+    })),
+  }));
+}
+
+function resolveLeaderboardRating(
+  ratingMode: LeaderboardRatingMode,
+  row: {
+    playerId: string;
+    totalGames: number;
+    totalScores: number;
+  },
+  eloRatings: Map<string, number> | null,
+) {
+  if (ratingMode === 'elo') {
+    return eloRatings?.get(row.playerId) ?? DEFAULT_ELO_RATING;
+  }
+
+  return computeRating(row.totalScores, row.totalGames);
+}
+
+function toGameResponse(
+  game: typeof gotGames.$inferSelect,
+  results: Array<typeof gotResults.$inferSelect>,
+) {
+  return {
+    createdAt: game.createdAt.toISOString(),
+    gameTypeId: game.gameTypeId,
+    id: game.id,
+    playedAt: game.playedAt.toISOString(),
+    recordedBy: game.recordedBy,
+    results: sortResultsByPlacement(
+      results.map((result) => ({
+        houseId: result.houseId,
+        id: result.id,
+        landings: result.landings,
+        playerId: result.playerId,
+        score: result.score,
+        supply: result.supply,
+        throne: result.throne,
+      })),
+    ),
+  };
 }
 
 async function validateGameInput(db: Db, input: CreateGotGameInput) {
@@ -166,199 +358,4 @@ async function validateGameInput(db: Db, input: CreateGotGameInput) {
       throw new Error('Unknown player in results');
     }
   }
-}
-
-export async function createGotGame(
-  db: Db,
-  input: CreateGotGameInput,
-  recordedBy: string,
-) {
-  await validateGameInput(db, input);
-
-  const [game] = await db
-    .insert(gotGames)
-    .values({
-      playedAt: new Date(input.playedAt),
-      gameTypeId: input.gameTypeId,
-      recordedBy,
-    })
-    .returning();
-
-  const resultRows = await db
-    .insert(gotResults)
-    .values(
-      input.results.map((result) => ({
-        gameId: game.id,
-        houseId: result.houseId,
-        playerId: result.playerId ?? null,
-        score: result.score,
-        landings: result.landings,
-        supply: result.supply,
-        throne: result.throne,
-      })),
-    )
-    .returning();
-
-  return toGameResponse(game, resultRows);
-}
-
-async function listGamesForElo(db: Db): Promise<EloGame[]> {
-  const games = await db.query.gotGames.findMany({
-    orderBy: [asc(gotGames.playedAt)],
-    with: {
-      results: true,
-    },
-  });
-
-  return games.map((game) => ({
-    playedAt: game.playedAt.toISOString(),
-    results: game.results.map((result) => ({
-      playerId: result.playerId,
-      score: result.score,
-      landings: result.landings,
-      supply: result.supply,
-      throne: result.throne,
-    })),
-  }));
-}
-
-function resolveLeaderboardRating(
-  ratingMode: LeaderboardRatingMode,
-  row: {
-    playerId: string;
-    totalGames: number;
-    totalScores: number;
-  },
-  eloRatings: Map<string, number> | null,
-) {
-  if (ratingMode === 'elo') {
-    return eloRatings?.get(row.playerId) ?? DEFAULT_ELO_RATING;
-  }
-
-  return computeRating(row.totalScores, row.totalGames);
-}
-
-export async function deleteGotGame(db: Db, gameId: string) {
-  const deleted = await db
-    .delete(gotGames)
-    .where(eq(gotGames.id, gameId))
-    .returning();
-
-  return deleted.length > 0;
-}
-
-export async function getGotLeaderboard(
-  db: Db,
-  ratingMode: LeaderboardRatingMode = 'average',
-) {
-  const rows = await db
-    .select({
-      playerId: players.id,
-      displayName: players.displayName,
-      totalGames: sql<number>`count(${gotResults.id})::int`,
-      totalScores: sql<number>`coalesce(sum(${gotResults.score}), 0)::int`,
-    })
-    .from(players)
-    .innerJoin(gotResults, eq(gotResults.playerId, players.id))
-    .groupBy(players.id, players.displayName)
-    .orderBy(
-      desc(
-        sql`coalesce(sum(${gotResults.score}), 0)::float / nullif(count(${gotResults.id}), 0)`,
-      ),
-    );
-
-  const eloRatings =
-    ratingMode === 'elo'
-      ? computeEloRatings(await listGamesForElo(db))
-      : null;
-
-  const leaderboard = rows.map((row) => ({
-    playerId: row.playerId,
-    displayName: row.displayName,
-    totalGames: row.totalGames,
-    totalScores: row.totalScores,
-    rating: resolveLeaderboardRating(ratingMode, row, eloRatings),
-  }));
-
-  if (ratingMode === 'elo') {
-    return leaderboard.sort((left, right) => right.rating - left.rating);
-  }
-
-  return leaderboard;
-}
-
-export async function getGotPlayerStats(
-  db: Db,
-  playerId: string,
-  ratingMode: LeaderboardRatingMode = 'average',
-) {
-  const player = await db.query.players.findFirst({
-    where: eq(players.id, playerId),
-  });
-
-  if (!player) {
-    return null;
-  }
-
-  const [stats] = await db
-    .select({
-      totalGames: sql<number>`count(${gotResults.id})::int`,
-      totalScores: sql<number>`coalesce(sum(${gotResults.score}), 0)::int`,
-    })
-    .from(gotResults)
-    .where(eq(gotResults.playerId, playerId));
-
-  const totalGames = stats?.totalGames ?? 0;
-  const totalScores = stats?.totalScores ?? 0;
-  const eloRatings =
-    ratingMode === 'elo'
-      ? computeEloRatings(await listGamesForElo(db))
-      : null;
-
-  return {
-    playerId: player.id,
-    displayName: player.displayName,
-    totalGames,
-    totalScores,
-    rating: resolveLeaderboardRating(
-      ratingMode,
-      {
-        playerId: player.id,
-        totalGames,
-        totalScores,
-      },
-      eloRatings,
-    ),
-  };
-}
-
-export async function getGotHouseStats(db: Db, locale: Locale) {
-  const rows = await db
-    .select({
-      houseId: gotHouses.id,
-      sortOrder: gotHouses.sortOrder,
-      totalGames: sql<number>`count(${gotResults.id})::int`,
-      totalScores: sql<number>`coalesce(sum(${gotResults.score}), 0)::int`,
-    })
-    .from(gotHouses)
-    .leftJoin(gotResults, eq(gotResults.houseId, gotHouses.id))
-    .groupBy(gotHouses.id, gotHouses.sortOrder)
-    .orderBy(asc(gotHouses.sortOrder));
-
-  return rows.map((row) => ({
-    houseId: row.houseId,
-    name: tHouseName(locale, row.houseId),
-    totalGames: row.totalGames,
-    totalScores: row.totalScores,
-    averageScore: row.totalGames > 0 ? row.totalScores / row.totalGames : 0,
-  }));
-}
-
-export async function getGotHouseStatsById(
-  db: Db,
-  houseId: string,
-  locale: Locale,
-) {
-  const all = await getGotHouseStats(db, locale);
-  return all.find((item) => item.houseId === houseId) ?? null;
 }

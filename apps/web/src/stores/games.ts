@@ -1,4 +1,5 @@
 import type { GotGame } from '@got-stat/shared';
+
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 

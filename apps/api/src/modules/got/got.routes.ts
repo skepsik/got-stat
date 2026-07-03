@@ -1,5 +1,3 @@
-import type { AppEnv } from '@/app-env';
-import type { Db } from '@/db/client';
 import type { MiddlewareHandler } from 'hono';
 
 import {
@@ -8,6 +6,10 @@ import {
 } from '@got-stat/shared';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+
+import type { AppEnv } from '@/app-env';
+import type { Db } from '@/db/client';
+
 import {
   createGotGame,
   deleteGotGame,

@@ -5,7 +5,7 @@ import { env } from '@/env';
 import { gameTypes } from './data/gameTypes';
 import { houses } from './data/houses';
 
-const { db, client } = createDb(env.DATABASE_URL);
+const { client, db } = createDb(env.DATABASE_URL);
 
 async function seedReferenceData() {
   await db

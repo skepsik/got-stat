@@ -48,7 +48,8 @@ const ratingOptions: Array<{
       </template>
 
       <v-alert type="info" variant="tonal">
-        Рейтинг в списке слева: {{ playersStore.ratingMode === 'elo' ? 'ELO' : 'средние VP' }}
+        Рейтинг в списке слева:
+        {{ playersStore.ratingMode === 'elo' ? 'ELO' : 'средние VP' }}
       </v-alert>
     </PageIdLayout>
   </AppLayout>

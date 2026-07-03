@@ -37,34 +37,34 @@ export const gotGameTypeHouses = pgTable(
 );
 
 export const gotGames = pgTable('got_games', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  playedAt: timestamp('played_at', { withTimezone: true }).notNull(),
-  gameTypeId: text('game_type_id')
-    .notNull()
-    .references(() => gotGameTypes.id),
-  recordedBy: uuid('recorded_by')
-    .notNull()
-    .references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
+  gameTypeId: text('game_type_id')
+    .notNull()
+    .references(() => gotGameTypes.id),
+  id: uuid('id').primaryKey().defaultRandom(),
+  playedAt: timestamp('played_at', { withTimezone: true }).notNull(),
+  recordedBy: uuid('recorded_by')
+    .notNull()
+    .references(() => users.id),
 });
 
 export const gotResults = pgTable(
   'got_results',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
     gameId: uuid('game_id')
       .notNull()
       .references(() => gotGames.id, { onDelete: 'cascade' }),
     houseId: text('house_id')
       .notNull()
       .references(() => gotHouses.id),
+    id: uuid('id').primaryKey().defaultRandom(),
+    landings: smallint('landings').notNull(),
     playerId: uuid('player_id').references(() => players.id, {
       onDelete: 'set null',
     }),
     score: smallint('score').notNull(),
-    landings: smallint('landings').notNull(),
     supply: smallint('supply').notNull(),
     throne: smallint('throne').notNull(),
   },

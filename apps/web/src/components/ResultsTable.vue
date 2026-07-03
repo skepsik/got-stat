@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { GotResult } from '@got-stat/shared';
+
 import { sortResultsByPlacement } from '@got-stat/shared';
 import { computed } from 'vue';
 
@@ -15,30 +16,30 @@ const playersStore = usePlayersStore();
 const referenceStore = useReferenceStore();
 
 const headers = [
-  { title: 'Дом', key: 'house', align: 'center' as const, sortable: false },
-  { title: 'Игрок', key: 'player', sortable: false },
-  { title: 'Очки', key: 'score', align: 'center' as const, sortable: false },
+  { align: 'center' as const, key: 'house', sortable: false, title: 'Дом' },
+  { key: 'player', sortable: false, title: 'Игрок' },
+  { align: 'center' as const, key: 'score', sortable: false, title: 'Очки' },
   {
-    title: 'Территории',
+    align: 'center' as const,
     key: 'landings',
-    align: 'center' as const,
     sortable: false,
+    title: 'Территории',
   },
   {
-    title: 'Снабжение',
-    key: 'supply',
     align: 'center' as const,
+    key: 'supply',
     sortable: false,
+    title: 'Снабжение',
   },
-  { title: 'Трон', key: 'throne', align: 'center' as const, sortable: false },
+  { align: 'center' as const, key: 'throne', sortable: false, title: 'Трон' },
 ];
 
 const items = computed(() =>
   sortResultsByPlacement(props.results).map((result) => ({
-      ...result,
-      houseName: referenceStore.houseName(result.houseId),
-      playerName: playersStore.labelFor(result.playerId),
-    })),
+    ...result,
+    houseName: referenceStore.houseName(result.houseId),
+    playerName: playersStore.labelFor(result.playerId),
+  })),
 );
 </script>
 

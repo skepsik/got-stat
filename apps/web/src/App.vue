@@ -6,10 +6,18 @@ import { useReferenceStore } from '@/stores/reference';
 const referenceStore = useReferenceStore();
 
 const navItems = [
-  { title: 'Партии', icon: 'mdi-view-dashboard', route: { name: 'games' } },
-  { title: 'Игроки', icon: 'mdi-account-circle-outline', route: { name: 'players' } },
-  { title: 'Дома', icon: 'mdi-castle', route: { name: 'houses' } },
-  { title: 'Рандомайзер', icon: 'mdi-dice-multiple', route: { name: 'randomizer' } },
+  { icon: 'mdi-view-dashboard', route: { name: 'games' }, title: 'Партии' },
+  {
+    icon: 'mdi-account-circle-outline',
+    route: { name: 'players' },
+    title: 'Игроки',
+  },
+  { icon: 'mdi-castle', route: { name: 'houses' }, title: 'Дома' },
+  {
+    icon: 'mdi-dice-multiple',
+    route: { name: 'randomizer' },
+    title: 'Рандомайзер',
+  },
 ];
 
 onMounted(() => {

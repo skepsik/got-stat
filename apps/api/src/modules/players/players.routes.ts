@@ -1,10 +1,12 @@
-import type { AppEnv } from '@/app-env';
-import type { Db } from '@/db/client';
 import type { MiddlewareHandler } from 'hono';
 
 import { createPlayerSchema } from '@got-stat/shared';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+
+import type { AppEnv } from '@/app-env';
+import type { Db } from '@/db/client';
+
 import {
   createPlayer,
   getPlayer,

@@ -18,4 +18,4 @@ export const ru = {
       tyrell: 'Тирелл',
     },
   },
-} as const
+} as const;

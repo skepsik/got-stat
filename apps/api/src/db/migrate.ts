@@ -1,9 +1,8 @@
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { dirname, join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
 
 import { env } from '@/env';
@@ -28,7 +27,8 @@ for (let attempt = 1; attempt <= maxAttempts; attempt++) {
   } catch (error) {
     await client.end({ timeout: 1 }).catch(() => undefined);
 
-    const cause = error instanceof Error && 'cause' in error ? error.cause : error;
+    const cause =
+      error instanceof Error && 'cause' in error ? error.cause : error;
     const code =
       cause instanceof Error && 'code' in cause
         ? String(cause.code)

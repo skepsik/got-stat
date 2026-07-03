@@ -1,18 +1,7 @@
-import type { AuthProvider, AuthUser } from '@/auth/types';
-
+import { telegramAuthSchema } from '@got-stat/shared';
 import { createHash, createHmac } from 'node:crypto';
 
-import { telegramAuthSchema } from '@got-stat/shared';
-
-function buildDataCheckString(
-  payload: Record<string, string | number | undefined>,
-): string {
-  return Object.entries(payload)
-    .filter(([key, value]) => key !== 'hash' && value !== undefined)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
-    .join('\n');
-}
+import type { AuthProvider, AuthUser } from '@/auth/types';
 
 export class TelegramWidgetAuthProvider implements AuthProvider {
   readonly id = 'telegram-widget';
@@ -57,11 +46,21 @@ export class TelegramWidgetAuthProvider implements AuthProvider {
       [payload.first_name, payload.last_name].filter(Boolean).join(' ') ||
       (payload.username ? `@${payload.username}` : `Telegram ${payload.id}`);
 
-    return {
-      providerUid: String(payload.id),
-      username: payload.username,
+    return Promise.resolve({
       displayName,
+      providerUid: String(payload.id),
       raw: payload,
-    };
+      username: payload.username,
+    });
   }
+}
+
+function buildDataCheckString(
+  payload: Record<string, number | string | undefined>,
+): string {
+  return Object.entries(payload)
+    .filter(([key, value]) => key !== 'hash' && value !== undefined)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join('\n');
 }

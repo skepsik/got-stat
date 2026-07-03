@@ -1,7 +1,17 @@
 export const gameTypes = [
   {
+    houses_ids: [
+      'barateon',
+      'lannister',
+      'stark',
+      'martell',
+      'grayjoy',
+      'tyrell',
+    ],
     id: 'classic',
     order: 1,
+  },
+  {
     houses_ids: [
       'barateon',
       'lannister',
@@ -9,11 +19,14 @@ export const gameTypes = [
       'martell',
       'grayjoy',
       'tyrell',
+      'arren',
+      'targarien',
     ],
-  },
-  {
     id: 'mother_of_dragons_a',
     order: 2,
+    vassals: true,
+  },
+  {
     houses_ids: [
       'barateon',
       'lannister',
@@ -24,26 +37,11 @@ export const gameTypes = [
       'arren',
       'targarien',
     ],
-    vassals: true,
-  },
-  {
     id: 'mother_of_dragons_b',
     order: 3,
-    houses_ids: [
-      'barateon',
-      'lannister',
-      'stark',
-      'martell',
-      'grayjoy',
-      'tyrell',
-      'arren',
-      'targarien',
-    ],
     vassals: true,
   },
   {
-    id: 'dance_with_dragons',
-    order: 4,
     houses_ids: [
       'barateon',
       'lannister',
@@ -52,10 +50,12 @@ export const gameTypes = [
       'grayjoy',
       'tyrell',
     ],
+    id: 'dance_with_dragons',
+    order: 4,
   },
   {
+    houses_ids: ['barateon', 'lannister', 'stark', 'arren'],
     id: 'feast_of_crows',
     order: 5,
-    houses_ids: ['barateon', 'lannister', 'stark', 'arren'],
   },
-]
+];

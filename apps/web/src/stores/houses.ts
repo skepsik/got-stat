@@ -1,4 +1,5 @@
 import type { GotHouseStats } from '@got-stat/shared';
+
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 

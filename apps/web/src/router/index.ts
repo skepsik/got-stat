@@ -8,31 +8,31 @@ const router = createRouter({
       redirect: { name: 'games' },
     },
     {
-      path: '/games',
-      name: 'games',
-      component: () => import('@/pages/GamesPage.vue'),
       children: [
         {
-          path: ':id',
-          name: 'game',
           component: () => import('@/pages/GameIdPage.vue'),
+          name: 'game',
+          path: ':id',
         },
       ],
+      component: () => import('@/pages/GamesPage.vue'),
+      name: 'games',
+      path: '/games',
     },
     {
-      path: '/players',
-      name: 'players',
       component: () => import('@/pages/PlayersPage.vue'),
+      name: 'players',
+      path: '/players',
     },
     {
-      path: '/houses',
-      name: 'houses',
       component: () => import('@/pages/HousesPage.vue'),
+      name: 'houses',
+      path: '/houses',
     },
     {
-      path: '/randomizer',
-      name: 'randomizer',
       component: () => import('@/pages/RandomizerPage.vue'),
+      name: 'randomizer',
+      path: '/randomizer',
     },
   ],
 });

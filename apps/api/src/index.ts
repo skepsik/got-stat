@@ -6,7 +6,7 @@ import { AuthProviderRegistry } from '@/auth/registry';
 import { createDb } from '@/db/client';
 import { env } from '@/env';
 
-const { db, client } = createDb(env.DATABASE_URL);
+const { client, db } = createDb(env.DATABASE_URL);
 
 const authRegistry = new AuthProviderRegistry();
 if (env.TELEGRAM_BOT_TOKEN) {
@@ -31,5 +31,5 @@ async function shutdown() {
   process.exit(0);
 }
 
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+process.on('SIGINT', () => void shutdown());
+process.on('SIGTERM', () => void shutdown());

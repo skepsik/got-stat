@@ -9,7 +9,7 @@ import { playerLabel, shuffle } from '@/utils/format';
 const referenceStore = useReferenceStore();
 const playersStore = usePlayersStore();
 
-const gameTypeId = ref<string | null>(null);
+const gameTypeId = ref<null | string>(null);
 const selectedPlayerIds = ref<string[]>([]);
 const shuffledPlayerIds = ref<string[]>([]);
 

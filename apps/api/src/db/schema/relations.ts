@@ -24,16 +24,16 @@ export const userIdentitiesRelations = relations(userIdentities, ({ one }) => ({
   }),
 }));
 
-export const playersRelations = relations(players, ({ one, many }) => ({
-  user: one(users, {
-    fields: [players.userId],
-    references: [users.id],
-  }),
+export const playersRelations = relations(players, ({ many, one }) => ({
   createdByUser: one(users, {
     fields: [players.createdBy],
     references: [users.id],
   }),
   results: many(gotResults),
+  user: one(users, {
+    fields: [players.userId],
+    references: [users.id],
+  }),
 }));
 
 export const gotHousesRelations = relations(gotHouses, ({ many }) => ({
@@ -42,8 +42,8 @@ export const gotHousesRelations = relations(gotHouses, ({ many }) => ({
 }));
 
 export const gotGameTypesRelations = relations(gotGameTypes, ({ many }) => ({
-  houses: many(gotGameTypeHouses),
   games: many(gotGames),
+  houses: many(gotGameTypeHouses),
 }));
 
 export const gotGameTypeHousesRelations = relations(
@@ -60,7 +60,7 @@ export const gotGameTypeHousesRelations = relations(
   }),
 );
 
-export const gotGamesRelations = relations(gotGames, ({ one, many }) => ({
+export const gotGamesRelations = relations(gotGames, ({ many, one }) => ({
   gameType: one(gotGameTypes, {
     fields: [gotGames.gameTypeId],
     references: [gotGameTypes.id],

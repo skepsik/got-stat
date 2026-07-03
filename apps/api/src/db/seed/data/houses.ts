@@ -7,4 +7,4 @@ export const houses = [
   { id: 'tyrell', order: 6 },
   { id: 'arren', order: 7 },
   { id: 'targarien', order: 8 },
-]
+];

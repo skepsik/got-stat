@@ -45,8 +45,6 @@ onMounted(() => {
 
     <ResultsTable v-if="game" :results="game.results" />
 
-    <v-alert v-else type="info" variant="tonal">
-      Партия не найдена
-    </v-alert>
+    <v-alert v-else type="info" variant="tonal"> Партия не найдена </v-alert>
   </PageIdLayout>
 </template>

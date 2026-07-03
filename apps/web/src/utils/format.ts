@@ -8,7 +8,7 @@ export function formatGameDate(value: string) {
 
 export function playerLabel(
   displayName: string | undefined,
-  telegram: string | null | undefined,
+  telegram: null | string | undefined,
 ) {
   if (telegram) {
     return `@${telegram}`;

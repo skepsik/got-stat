@@ -33,14 +33,14 @@ export {
   gotHouseSchema,
   type GotHouseStats,
   gotHouseStatsSchema,
-  type LeaderboardRatingMode,
-  leaderboardRatingModeSchema,
   type GotPlayerStats,
   gotPlayerStatsSchema,
   type GotResult,
   type GotResultInput,
   gotResultInputSchema,
   gotResultSchema,
+  type LeaderboardRatingMode,
+  leaderboardRatingModeSchema,
 } from './schemas/got';
 export {
   type CreatePlayerInput,

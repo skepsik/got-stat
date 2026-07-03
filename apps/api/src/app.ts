@@ -1,9 +1,11 @@
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+
 import type { AppEnv } from '@/app-env';
 import type { AuthProviderRegistry } from '@/auth/registry';
 import type { Db } from '@/db/client';
 import type { Env } from '@/env';
-import { Hono } from 'hono';
-import { HTTPException } from 'hono/http-exception';
+
 import {
   clearSessionCookie,
   createAuthMiddleware,
