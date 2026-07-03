@@ -2,7 +2,10 @@ import type { AppEnv } from '@/app-env';
 import type { Db } from '@/db/client';
 import type { MiddlewareHandler } from 'hono';
 
-import { createGotGameSchema } from '@got-stat/shared';
+import {
+  createGotGameSchema,
+  leaderboardRatingModeSchema,
+} from '@got-stat/shared';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import {
@@ -65,9 +68,13 @@ export function createGotRoutes(
     return c.body(null, 204);
   });
 
-  app.get('/stats/leaderboard', async (c) =>
-    c.json(await getGotLeaderboard(db)),
-  );
+  app.get('/stats/leaderboard', async (c) => {
+    const ratingMode = leaderboardRatingModeSchema.parse(
+      c.req.query('rating') ?? 'average',
+    );
+
+    return c.json(await getGotLeaderboard(db, ratingMode));
+  });
   app.get('/stats/houses', async (c) =>
     c.json(await getGotHouseStats(db, c.get('locale'))),
   );
@@ -86,7 +93,14 @@ export function createGotRoutes(
   });
 
   app.get('/players/:playerId/stats', async (c) => {
-    const stats = await getGotPlayerStats(db, c.req.param('playerId'));
+    const ratingMode = leaderboardRatingModeSchema.parse(
+      c.req.query('rating') ?? 'average',
+    );
+    const stats = await getGotPlayerStats(
+      db,
+      c.req.param('playerId'),
+      ratingMode,
+    );
     if (!stats) {
       throw new HTTPException(404, { message: 'Player not found' });
     }

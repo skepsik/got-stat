@@ -1,4 +1,4 @@
-import type { GotPlayerStats, Player } from '@got-stat/shared';
+import type { GotPlayerStats, LeaderboardRatingMode, Player } from '@got-stat/shared';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -9,8 +9,10 @@ import { playerLabel } from '@/utils/format';
 export const usePlayersStore = defineStore('players', () => {
   const players = ref<Player[]>([]);
   const leaderboard = ref<GotPlayerStats[]>([]);
+  const ratingMode = ref<LeaderboardRatingMode>('average');
   const loading = ref(false);
-  const loaded = ref(false);
+  const playersLoaded = ref(false);
+  const leaderboardLoaded = ref(false);
 
   const playersById = computed(
     () => new Map(players.value.map((player) => [player.id, player])),
@@ -30,22 +32,44 @@ export const usePlayersStore = defineStore('players', () => {
     }),
   );
 
+  async function loadPlayers() {
+    if (playersLoaded.value) {
+      return;
+    }
+
+    players.value = await listPlayers();
+    playersLoaded.value = true;
+  }
+
+  async function loadLeaderboard() {
+    leaderboard.value = await getGotLeaderboard(ratingMode.value);
+    leaderboardLoaded.value = true;
+  }
+
   async function load() {
-    if (loaded.value || loading.value) {
+    if (loading.value) {
       return;
     }
 
     loading.value = true;
 
     try {
-      const [nextPlayers, nextLeaderboard] = await Promise.all([
-        listPlayers(),
-        getGotLeaderboard(),
-      ]);
+      await Promise.all([loadPlayers(), loadLeaderboard()]);
+    } finally {
+      loading.value = false;
+    }
+  }
 
-      players.value = nextPlayers;
-      leaderboard.value = nextLeaderboard;
-      loaded.value = true;
+  async function setRatingMode(mode: LeaderboardRatingMode) {
+    if (ratingMode.value === mode) {
+      return;
+    }
+
+    ratingMode.value = mode;
+    loading.value = true;
+
+    try {
+      await loadLeaderboard();
     } finally {
       loading.value = false;
     }
@@ -68,11 +92,15 @@ export const usePlayersStore = defineStore('players', () => {
   return {
     labelFor,
     leaderboard,
+    leaderboardLoaded,
     leaderboardRows,
     load,
-    loaded,
+    loaded: computed(() => playersLoaded.value && leaderboardLoaded.value),
     loading,
     players,
     playersById,
+    playersLoaded,
+    ratingMode,
+    setRatingMode,
   };
 });

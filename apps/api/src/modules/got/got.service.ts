@@ -2,8 +2,12 @@ import type { Db } from '@/db/client';
 import type { Locale } from '@/i18n/index';
 
 import {
+  computeEloRatings,
   computeRating,
   type CreateGotGameInput,
+  DEFAULT_ELO_RATING,
+  type EloGame,
+  type LeaderboardRatingMode,
   sortResultsByPlacement,
 } from '@got-stat/shared';
 import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
@@ -198,6 +202,42 @@ export async function createGotGame(
   return toGameResponse(game, resultRows);
 }
 
+async function listGamesForElo(db: Db): Promise<EloGame[]> {
+  const games = await db.query.gotGames.findMany({
+    orderBy: [asc(gotGames.playedAt)],
+    with: {
+      results: true,
+    },
+  });
+
+  return games.map((game) => ({
+    playedAt: game.playedAt.toISOString(),
+    results: game.results.map((result) => ({
+      playerId: result.playerId,
+      score: result.score,
+      landings: result.landings,
+      supply: result.supply,
+      throne: result.throne,
+    })),
+  }));
+}
+
+function resolveLeaderboardRating(
+  ratingMode: LeaderboardRatingMode,
+  row: {
+    playerId: string;
+    totalGames: number;
+    totalScores: number;
+  },
+  eloRatings: Map<string, number> | null,
+) {
+  if (ratingMode === 'elo') {
+    return eloRatings?.get(row.playerId) ?? DEFAULT_ELO_RATING;
+  }
+
+  return computeRating(row.totalScores, row.totalGames);
+}
+
 export async function deleteGotGame(db: Db, gameId: string) {
   const deleted = await db
     .delete(gotGames)
@@ -207,7 +247,10 @@ export async function deleteGotGame(db: Db, gameId: string) {
   return deleted.length > 0;
 }
 
-export async function getGotLeaderboard(db: Db) {
+export async function getGotLeaderboard(
+  db: Db,
+  ratingMode: LeaderboardRatingMode = 'average',
+) {
   const rows = await db
     .select({
       playerId: players.id,
@@ -224,16 +267,31 @@ export async function getGotLeaderboard(db: Db) {
       ),
     );
 
-  return rows.map((row) => ({
+  const eloRatings =
+    ratingMode === 'elo'
+      ? computeEloRatings(await listGamesForElo(db))
+      : null;
+
+  const leaderboard = rows.map((row) => ({
     playerId: row.playerId,
     displayName: row.displayName,
     totalGames: row.totalGames,
     totalScores: row.totalScores,
-    rating: computeRating(row.totalScores, row.totalGames),
+    rating: resolveLeaderboardRating(ratingMode, row, eloRatings),
   }));
+
+  if (ratingMode === 'elo') {
+    return leaderboard.sort((left, right) => right.rating - left.rating);
+  }
+
+  return leaderboard;
 }
 
-export async function getGotPlayerStats(db: Db, playerId: string) {
+export async function getGotPlayerStats(
+  db: Db,
+  playerId: string,
+  ratingMode: LeaderboardRatingMode = 'average',
+) {
   const player = await db.query.players.findFirst({
     where: eq(players.id, playerId),
   });
@@ -252,13 +310,25 @@ export async function getGotPlayerStats(db: Db, playerId: string) {
 
   const totalGames = stats?.totalGames ?? 0;
   const totalScores = stats?.totalScores ?? 0;
+  const eloRatings =
+    ratingMode === 'elo'
+      ? computeEloRatings(await listGamesForElo(db))
+      : null;
 
   return {
     playerId: player.id,
     displayName: player.displayName,
     totalGames,
     totalScores,
-    rating: computeRating(totalScores, totalGames),
+    rating: resolveLeaderboardRating(
+      ratingMode,
+      {
+        playerId: player.id,
+        totalGames,
+        totalScores,
+      },
+      eloRatings,
+    ),
   };
 }
 

@@ -12,7 +12,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-list class="fill-height" density="comfortable" nav>
+  <div class="d-flex flex-column fill-height players-list">
+    <v-progress-linear
+      v-if="playersStore.loading"
+      color="primary"
+      indeterminate
+    />
+
+    <v-list class="flex-grow-1" density="comfortable" nav>
     <v-list-item
       v-for="row in playersStore.leaderboardRows"
       :key="row.playerId"
@@ -25,5 +32,6 @@ onMounted(() => {
         </v-avatar>
       </template>
     </v-list-item>
-  </v-list>
+    </v-list>
+  </div>
 </template>

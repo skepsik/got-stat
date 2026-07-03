@@ -1,9 +1,19 @@
-export { computeRating } from './got/rating';
+export {
+  computeEloRatings,
+  computePlayerElo,
+  DEFAULT_ELO_K_FACTOR,
+  DEFAULT_ELO_RATING,
+  type EloConfig,
+  type EloGame,
+  type EloGameResult,
+  type EloParticipant,
+} from './got/elo';
 export {
   compareResultsByPlacement,
   type GotResultPlacement,
   sortResultsByPlacement,
 } from './got/ranking';
+export { computeRating } from './got/rating';
 export {
   type AuthMe,
   authMeSchema,
@@ -23,6 +33,8 @@ export {
   gotHouseSchema,
   type GotHouseStats,
   gotHouseStatsSchema,
+  type LeaderboardRatingMode,
+  leaderboardRatingModeSchema,
   type GotPlayerStats,
   gotPlayerStatsSchema,
   type GotResult,

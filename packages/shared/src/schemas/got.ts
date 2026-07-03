@@ -67,6 +67,8 @@ export const gotGameSchema = z.object({
   results: z.array(gotResultSchema),
 });
 
+export const leaderboardRatingModeSchema = z.enum(['average', 'elo']);
+
 export const gotPlayerStatsSchema = z.object({
   playerId: z.string().uuid(),
   displayName: z.string(),
@@ -82,6 +84,10 @@ export const gotHouseStatsSchema = z.object({
   totalScores: z.number().int(),
   averageScore: z.number(),
 });
+
+export type LeaderboardRatingMode = z.infer<
+  typeof leaderboardRatingModeSchema
+>;
 
 export type GotResultInput = z.infer<typeof gotResultInputSchema>;
 export type CreateGotGameInput = z.infer<typeof createGotGameSchema>;
