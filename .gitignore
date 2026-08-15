@@ -14,3 +14,5 @@ npm-debug.log*
 
 *.tsbuildinfo
 docker-compose.override.yml
+
+.tmp
